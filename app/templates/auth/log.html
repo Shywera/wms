@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Log aktivnosti — Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl">
+    <div class="flex items-center gap-3 mb-4">
+        <h1 class="text-xl font-bold text-gray-800">Administracija</h1>
+        <a href="/admin/korisnici" class="px-3 py-1.5 rounded text-sm font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200">Korisnici</a>
+        <a href="/admin/log" class="px-3 py-1.5 rounded text-sm font-semibold bg-blue-600 text-white">Log aktivnosti</a>
+    </div>
+
+    <div class="bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-700 flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-widest text-white">Tko je što napravio</span>
+            <span class="text-xs font-mono text-slate-200">{{ ukupno }} zapisa</span>
+        </div>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-slate-800 text-white text-xs uppercase tracking-wide">
+                    <th class="px-3 py-2 text-left font-semibold w-40">Vrijeme</th>
+                    <th class="px-3 py-2 text-left font-semibold w-32">Korisnik</th>
+                    <th class="px-3 py-2 text-left font-semibold w-56">Akcija</th>
+                    <th class="px-3 py-2 text-left font-semibold">Detalji</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in redovi %}
+            <tr class="border-b border-gray-100 even:bg-gray-50">
+                <td class="px-3 py-2 text-gray-500 text-xs whitespace-nowrap">{{ r.timestamp.strftime('%d.%m.%Y %H:%M:%S') if r.timestamp else '—' }}</td>
+                <td class="px-3 py-2 font-semibold text-gray-700">{{ r.username or '—' }}</td>
+                <td class="px-3 py-2 text-gray-800">{{ r.akcija }}</td>
+                <td class="px-3 py-2 font-mono text-xs text-gray-600">{{ r.detalji or '—' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="px-3 py-6 text-center text-gray-400">Još nema zapisa.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if stranica > 1 or ima_jos %}
+    <div class="flex items-center justify-between mt-3 text-sm">
+        {% if stranica > 1 %}
+        <a href="/admin/log?stranica={{ stranica - 1 }}" class="px-3 py-1.5 rounded bg-gray-100 hover:bg-gray-200">← Novije</a>
+        {% else %}<span></span>{% endif %}
+        <span class="text-gray-400 text-xs">stranica {{ stranica }}</span>
+        {% if ima_jos %}
+        <a href="/admin/log?stranica={{ stranica + 1 }}" class="px-3 py-1.5 rounded bg-gray-100 hover:bg-gray-200">Starije →</a>
+        {% else %}<span></span>{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

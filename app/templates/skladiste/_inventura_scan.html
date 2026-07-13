@@ -1,0 +1,7 @@
+{% if greska %}
+<div class="text-red-600 font-semibold text-sm">{{ greska }}</div>
+{% else %}
+<div class="text-3xl font-bold font-mono text-blue-700">{{ broj }}</div>
+<div class="text-xs text-gray-500">skenirano · zadnji: <span class="font-mono">{{ zadnji }}</span></div>
+{% endif %}
+<script>var i=document.getElementById('inv-barkod'); if(i){i.focus();}</script>

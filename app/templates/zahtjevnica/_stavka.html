@@ -1,0 +1,111 @@
+{% if oob %}
+<span id="z-progres" hx-swap-oob="true">{{ z.broj_izdano }} / {{ z.broj_papir }}</span>
+{% endif %}
+
+{% if s.izdano %}
+{# ── Izdano ✓ ── #}
+<div id="stavka-{{ s.id }}" class="bg-green-50 rounded-lg border-2 border-green-300 p-4 flex items-center gap-3">
+    <div class="text-green-600 text-2xl shrink-0">✓</div>
+    <div class="flex-1 min-w-0">
+        <div class="font-bold text-gray-800 truncate">{{ s.naziv or s.sifra }}</div>
+        <div class="text-[11px] text-gray-500 font-mono">{{ s.sifra }} · izdano {{ s.izdano_kolicina|fmtn }} {{ s.jedinica or 'arak' }}</div>
+    </div>
+    <button hx-post="/zahtjevnica/{{ z.id }}/stavka/{{ s.id }}/ponisti"
+            hx-target="#stavka-{{ s.id }}" hx-swap="outerHTML"
+            hx-confirm="Poništiti oznaku izdavanja? (palete se NE vraćaju automatski)"
+            class="text-[11px] text-gray-400 hover:text-red-600 border border-gray-200 rounded px-2 py-1 shrink-0">Poništi</button>
+</div>
+
+{% elif mode == "predlog" %}
+{# ── Prijedlog paleta + potvrda skenom ── #}
+<div id="stavka-{{ s.id }}" class="bg-white rounded-lg border-2 border-blue-400 shadow-md p-4">
+    <div class="flex items-center gap-3 mb-3">
+        <div class="flex-1 min-w-0">
+            <div class="font-bold text-gray-800 truncate">{{ s.naziv or s.sifra }}</div>
+            <div class="text-[11px] text-gray-400 font-mono">{{ s.sifra }} · traženo {{ s.trazena_kolicina|fmtn }} {{ s.jedinica or 'arak' }}</div>
+        </div>
+        <button hx-get="/zahtjevnica/{{ z.id }}/stavka/{{ s.id }}" hx-target="#stavka-{{ s.id }}" hx-swap="outerHTML"
+                class="text-xs text-gray-400 hover:text-gray-700 shrink-0">✕ Odustani</button>
+    </div>
+
+    {% if greska %}
+    <div class="bg-red-50 border border-red-300 text-red-700 text-sm rounded p-2 mb-3">✕ {{ greska }}</div>
+    {% endif %}
+
+    {% if not predlog.dovoljno %}
+    <div class="bg-amber-50 border border-amber-300 text-amber-800 text-sm rounded p-2 mb-3">
+        ⚠ Na stanju je samo <b>{{ predlog.ukupno|fmtn }}</b> od traženih <b>{{ predlog.trazeno|fmtn }}</b> araka. Izdaj što ima ili provjeri stanje.
+    </div>
+    {% endif %}
+
+    {% if predlog.palete %}
+    <div class="overflow-x-auto mb-3">
+        <table class="w-full text-sm">
+            <thead><tr class="text-[10px] uppercase text-gray-400 border-b border-gray-200">
+                <th class="text-left py-1">Pozicija</th><th class="text-left py-1">Lot</th>
+                <th class="text-right py-1">Araka</th><th class="text-right py-1">Uzima se</th></tr></thead>
+            <tbody>
+            {% for r in predlog.palete %}
+            <tr class="border-b border-gray-100">
+                <td class="py-1.5 font-mono font-semibold text-gray-800">{{ r.paleta.pozicija }}</td>
+                <td class="py-1.5 text-gray-500 text-xs">{{ r.paleta.lot or "—" }}</td>
+                <td class="py-1.5 text-right font-mono text-gray-600">{{ r.kolicina|fmtn }}</td>
+                <td class="py-1.5 text-right font-mono font-semibold text-gray-900">{{ r.doprinos|fmtn }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot><tr class="border-t-2 border-gray-300 text-xs">
+                <td colspan="2" class="py-1.5 font-bold uppercase text-gray-600">Ukupno paleta: {{ predlog.palete|length }}</td>
+                <td class="py-1.5 text-right font-bold font-mono">{{ predlog.ukupno|fmtn }}</td>
+                <td class="py-1.5 text-right font-bold font-mono text-blue-700">{{ predlog.trazeno|fmtn }}</td>
+            </tr></tfoot>
+        </table>
+    </div>
+
+    {% set ids = predlog.palete | map(attribute='paleta') | map(attribute='id') | join(',') %}
+    <form hx-post="/zahtjevnica/{{ z.id }}/stavka/{{ s.id }}/izdaj"
+          hx-target="#stavka-{{ s.id }}" hx-swap="outerHTML"
+          onsubmit="if(!this.barkod.value.trim()) return confirm('Nisi skenirao paletu. Izdati BEZ provjere skenerom?');">
+        <input type="hidden" name="paleta_ids" value="{{ ids }}">
+        <label class="block text-[10px] font-semibold text-gray-500 uppercase mb-1">Skeniraj bilo koju prikazanu paletu za potvrdu</label>
+        <div class="flex gap-2">
+            <input name="barkod" id="sken-{{ s.id }}" autocomplete="off"
+                   placeholder="Skeniraj paletu…"
+                   class="flex-1 border-2 border-blue-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit" class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shrink-0">Potvrdi ✓</button>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-1">Skener sam potvrdi (Enter na kraju skena).</p>
+    </form>
+    <script>(function(){var i=document.getElementById('sken-{{ s.id }}'); if(i) i.focus();})();</script>
+    {% else %}
+    <div class="bg-red-50 border border-red-300 text-red-700 text-sm rounded p-3">
+        Nema nijedne palete te šifre na stanju. Provjeri je li roba zaprimljena.
+    </div>
+    {% endif %}
+</div>
+
+{% else %}
+{# ── Početno stanje: veliki gumb Izdaj ── #}
+<div id="stavka-{{ s.id }}" class="bg-white rounded-lg border-2 {% if s.ukljucena %}border-amber-300{% else %}border-gray-300{% endif %} p-4 flex items-center gap-3">
+    <div class="flex-1 min-w-0">
+        <div class="font-bold text-gray-800 text-lg truncate">{{ s.naziv or s.sifra }}</div>
+        <div class="text-[11px] text-gray-400 font-mono">{{ s.sifra }}{% if s.rn_popis %} · RN {{ s.rn_popis }}{% endif %}</div>
+        {% if s.ukljucena %}
+        <div class="mt-1 flex items-center gap-2">
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-semibold">ručno dodano ({{ s.jedinica or '?' }})</span>
+            <form method="post" action="/zahtjevnica/{{ z.id }}/stavka/{{ s.id }}/iskljuci">
+                <button class="text-[10px] text-gray-400 hover:text-red-600 underline">makni iz izdavanja</button>
+            </form>
+        </div>
+        {% endif %}
+        {% if greska %}<div class="text-xs text-red-600 mt-1">✕ {{ greska }}</div>{% endif %}
+    </div>
+    <div class="text-right shrink-0">
+        <div class="text-2xl font-bold font-mono text-gray-900">{{ s.trazena_kolicina|fmtn }}</div>
+        <div class="text-[10px] text-gray-400 uppercase">{{ s.jedinica or 'arak' }}</div>
+    </div>
+    <button hx-post="/zahtjevnica/{{ z.id }}/stavka/{{ s.id }}/predlozi"
+            hx-target="#stavka-{{ s.id }}" hx-swap="outerHTML"
+            class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-base shrink-0">Izdaj ▶</button>
+</div>
+{% endif %}

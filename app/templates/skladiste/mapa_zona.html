@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Zona {{ zona }} — Karta skladišta{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-2 mb-4 text-sm">
+    <a href="/skladiste" class="text-slate-500 hover:text-slate-800">← Skladište</a>
+    <span class="text-gray-300">/</span>
+    <a href="/skladiste/mapa" class="text-slate-500 hover:text-slate-800">Karta</a>
+    <span class="text-gray-300">/</span>
+    <span class="font-semibold text-gray-700">Zona {{ zona }}</span>
+</div>
+
+<div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+    <h1 class="text-xl font-bold text-gray-800">Zona {{ zona }}
+        <span class="text-sm font-normal text-gray-400 ml-1 font-mono">{{ zauzeto }} / {{ kapacitet }}</span>
+    </h1>
+    <div class="flex items-center gap-3 text-xs text-gray-600">
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-gray-100 border border-gray-300 inline-block"></span> slobodno</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-blue-500 inline-block"></span> zauzeto</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-amber-500 inline-block"></span> ističe ≤30d</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-red-500 inline-block"></span> isteklo</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm inline-block bg-red-500"></span> nepotpuna</span>
+    </div>
+</div>
+<p class="text-xs text-gray-400 mb-3">Pređi mišem ili dodirni ćeliju za detalje.</p>
+
+<div id="mapa-grid" class="space-y-4">
+    {% for r in regali %}
+    <div class="bg-white rounded-lg border border-gray-300 shadow-sm p-3">
+        <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-gray-700">Regal {{ r.naziv }}</span>
+            <span class="text-xs font-mono text-gray-400">{{ r.zauzeto }} / {{ r.kapacitet }}</span>
+        </div>
+        <div class="overflow-x-auto">
+            <div class="inline-block">
+                {% for red in r.redovi %}
+                <div class="flex items-center gap-1 mb-1">
+                    <span class="w-6 text-[10px] font-mono text-gray-400 text-right shrink-0">V{{ red.visina }}</span>
+                    {% for c in red.celije %}
+                    {% set base = '#f3f4f6' if c.status == 'slobodno' else ('#f59e0b' if c.status == 'istice' else ('#ef4444' if c.status == 'isteklo' else '#3b82f6')) %}
+                    <div data-info="{{ c.kod }}{% if c.paleta %} | {{ c.paleta.sifra or '' }} {{ c.paleta.naziv or '' }}{% if c.paleta.kolicina %} | {{ c.paleta.kolicina }} {{ c.paleta.jedinica or '' }}{% endif %}{% if c.paleta.lot %} | lot {{ c.paleta.lot }}{% endif %}{% if c.paleta.rok_trajanja %} | rok {{ c.paleta.rok_trajanja.strftime('%d.%m.%Y') }}{% endif %}{% else %} | slobodno{% endif %}{% if c.nepotpuna %} | nepotpuna{% endif %}"
+                         class="w-5 h-5 rounded-sm shrink-0 cursor-pointer border hover:ring-2 hover:ring-slate-800
+                                {% if c.nepotpuna %}border-red-700{% elif c.status == 'slobodno' %}border-gray-300{% elif c.status == 'istice' %}border-amber-600{% elif c.status == 'isteklo' %}border-red-600{% else %}border-blue-600{% endif %}"
+                         style="background:{% if c.nepotpuna %}#ef4444{% else %}{{ base }}{% endif %}"></div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+                <div class="flex items-center gap-1 mt-0.5">
+                    <span class="w-6 shrink-0"></span>
+                    {% for c in r.redovi[0].celije %}
+                    <span class="w-5 text-[8px] text-gray-300 text-center shrink-0 font-mono">{{ c.pozicija }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{# Custom tooltip — radi i na hover (desktop) i na tap (Zebra PDA) #}
+<div id="cell-tip" class="hidden fixed z-50 bg-slate-800 text-white text-xs rounded px-2.5 py-1.5 shadow-lg pointer-events-none max-w-xs font-mono"></div>
+<script>
+(function () {
+    var tip = document.getElementById('cell-tip');
+    var grid = document.getElementById('mapa-grid');
+    if (!tip || !grid) return;
+    function move(e) {
+        var x = (e.touches ? e.touches[0].clientX : e.clientX) + 12;
+        var y = (e.touches ? e.touches[0].clientY : e.clientY) + 12;
+        tip.style.left = Math.min(x, window.innerWidth - tip.offsetWidth - 8) + 'px';
+        tip.style.top = y + 'px';
+    }
+    function show(cell, e) {
+        tip.textContent = cell.getAttribute('data-info');
+        tip.classList.remove('hidden');
+        move(e);
+    }
+    function hide() { tip.classList.add('hidden'); }
+    grid.addEventListener('mouseover', function (e) { var c = e.target.closest('[data-info]'); if (c) show(c, e); });
+    grid.addEventListener('mousemove', function (e) { if (!tip.classList.contains('hidden')) move(e); });
+    grid.addEventListener('mouseout', function (e) { if (e.target.closest('[data-info]')) hide(); });
+    grid.addEventListener('click', function (e) {
+        var c = e.target.closest('[data-info]');
+        if (c) { show(c, e); clearTimeout(window.__tipT); window.__tipT = setTimeout(hide, 3000); }
+    });
+})();
+</script>
+{% endblock %}

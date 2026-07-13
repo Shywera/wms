@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Korisnici — Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl">
+    <div class="flex items-center gap-3 mb-4">
+        <h1 class="text-xl font-bold text-gray-800">Administracija</h1>
+        <a href="/admin/korisnici" class="px-3 py-1.5 rounded text-sm font-semibold bg-blue-600 text-white">Korisnici</a>
+        <a href="/admin/log" class="px-3 py-1.5 rounded text-sm font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200">Log aktivnosti</a>
+    </div>
+
+    {% if request.query_params.get('greska') %}
+    <div class="border-2 border-red-400 bg-red-50 rounded-lg p-3 mb-4 text-sm font-semibold text-red-700">
+        ✕ {{ request.query_params.get('greska') }}
+    </div>
+    {% endif %}
+
+    {# ── Novi korisnik ── #}
+    <div x-data="{open:false}" class="bg-white rounded-lg border border-gray-300 shadow-sm mb-5">
+        <button @click="open=!open" class="w-full text-left px-4 py-3 font-semibold text-gray-700 flex items-center justify-between">
+            <span>+ Novi korisnik</span>
+            <span class="text-gray-400 text-sm" x-text="open ? '−' : '+'"></span>
+        </button>
+        <div x-show="open" x-cloak class="px-4 pb-4 border-t border-gray-100 pt-4">
+            <form method="post" action="/admin/korisnici" class="space-y-3">
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Korisničko ime *</label>
+                        <input name="username" required class="w-full border border-gray-400 rounded px-2 py-1.5 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Ime i prezime</label>
+                        <input name="ime" class="w-full border border-gray-400 rounded px-2 py-1.5 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 mb-1">Lozinka *</label>
+                        <input name="lozinka" type="text" required class="w-full border border-gray-400 rounded px-2 py-1.5 text-sm font-mono">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Dozvole</label>
+                    <div class="flex flex-wrap gap-3">
+                        {% for key, opis in permissions.items() %}
+                        <label class="flex items-center gap-1.5 text-sm">
+                            <input type="checkbox" name="dozvole" value="{{ key }}" class="rounded">
+                            <span>{{ opis }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded px-4 py-2">Spremi korisnika</button>
+            </form>
+        </div>
+    </div>
+
+    {# ── Popis korisnika ── #}
+    <div class="bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-700">
+            <span class="text-xs font-bold uppercase tracking-widest text-white">Korisnici ({{ users | length }})</span>
+        </div>
+        <table class="w-full text-sm">
+            <tbody>
+            {% for u in users %}
+            {% set up = perms_set(u.dozvole) %}
+            <tr x-data="{edit:false}" class="border-b border-gray-100 align-top">
+                <td colspan="5" class="p-0">
+                    <div class="flex items-center gap-3 px-4 py-2.5 {% if not u.aktivan %}opacity-50{% endif %}">
+                        <div class="w-40 shrink-0">
+                            <div class="font-semibold text-gray-800">{{ u.username }}</div>
+                            <div class="text-xs text-gray-400">{{ u.ime or '—' }}</div>
+                        </div>
+                        <div class="flex-1 flex flex-wrap gap-1">
+                            {% if 'admin' in up %}
+                            <span class="text-[11px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-semibold">admin (sve)</span>
+                            {% else %}
+                            {% for key, opis in permissions.items() if key in up %}
+                            <span class="text-[11px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700">{{ key }}</span>
+                            {% else %}
+                            <span class="text-[11px] text-gray-400">bez dozvola (samo pregled)</span>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                        <div class="w-20 shrink-0 text-center">
+                            {% if u.aktivan %}
+                            <span class="text-[11px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">aktivan</span>
+                            {% else %}
+                            <span class="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">isključen</span>
+                            {% endif %}
+                        </div>
+                        <div class="shrink-0">
+                            <button @click="edit=!edit" class="text-xs px-2 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50">Uredi</button>
+                            <form method="post" action="/admin/korisnici/{{ u.id }}/obrisi" class="inline"
+                                  onsubmit="return confirm('Obrisati korisnika {{ u.username }}?')">
+                                <button class="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50">Obriši</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    {# edit panel #}
+                    <div x-show="edit" x-cloak class="bg-slate-50 border-t border-gray-200 px-4 py-3">
+                        <form method="post" action="/admin/korisnici/{{ u.id }}/uredi" class="space-y-3">
+                            <div class="flex flex-wrap items-end gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1">Ime i prezime</label>
+                                    <input name="ime" value="{{ u.ime or '' }}" class="border border-gray-400 rounded px-2 py-1.5 text-sm">
+                                </div>
+                                <label class="flex items-center gap-1.5 text-sm pb-1.5">
+                                    <input type="checkbox" name="aktivan" {% if u.aktivan %}checked{% endif %} class="rounded">
+                                    <span>aktivan</span>
+                                </label>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1.5">Dozvole</label>
+                                <div class="flex flex-wrap gap-3">
+                                    {% for key, opis in permissions.items() %}
+                                    <label class="flex items-center gap-1.5 text-sm">
+                                        <input type="checkbox" name="dozvole" value="{{ key }}" {% if key in up %}checked{% endif %} class="rounded">
+                                        <span>{{ opis }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded px-4 py-1.5">Spremi izmjene</button>
+                        </form>
+
+                        <form method="post" action="/admin/korisnici/{{ u.id }}/lozinka" class="flex items-end gap-2 mt-3 pt-3 border-t border-gray-200">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">Nova lozinka</label>
+                                <input name="lozinka" type="text" class="border border-gray-400 rounded px-2 py-1.5 text-sm font-mono">
+                            </div>
+                            <button class="text-sm border border-gray-300 text-gray-700 rounded px-3 py-1.5 hover:bg-gray-100">Promijeni lozinku</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

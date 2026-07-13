@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Plan zaprimanja #{{ prijem.id }} — Skladište{% endblock %}
+
+{% block content %}
+{% include "skladiste/_nav.html" %}
+<div class="max-w-xl mx-auto">
+    <div class="flex items-center justify-between mb-3">
+        <h1 class="text-xl font-bold text-gray-800">Plan zaprimanja #{{ prijem.id }}</h1>
+        <div class="flex items-center gap-3">
+        <a href="/skladiste/zaprimanje/plan/{{ prijem.id }}/pdf" target="_blank"
+           class="text-xs font-semibold text-slate-600 hover:text-slate-900">🖨 Ispiši listu (PDF)</a>
+        <div x-data="{open:false}" class="relative">
+            <button @click="open=!open" type="button" class="text-xs text-red-500 hover:text-red-700">otkaži plan</button>
+            <div x-show="open" @click.outside="open=false" x-cloak
+                 class="absolute right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-2 z-20 w-60 text-left">
+                <p class="text-[11px] text-gray-500 mb-2 px-1">Što s već primljenim paletama?</p>
+                <form method="post" action="/skladiste/zaprimanje/plan/{{ prijem.id }}/odustani" class="mb-1">
+                    <button class="w-full text-left text-xs px-2 py-1.5 rounded hover:bg-gray-100">↩ Zadrži palete na skladištu</button>
+                </form>
+                <form method="post" action="/skladiste/zaprimanje/plan/{{ prijem.id }}/odustani"
+                      onsubmit="return confirm('Izbrisati SVE palete primljene ovim planom?')">
+                    <input type="hidden" name="izbrisi" value="1">
+                    <button class="w-full text-left text-xs px-2 py-1.5 rounded text-red-600 hover:bg-red-50">🗑 Izbriši sve palete plana</button>
+                </form>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    {# Sažetak artikla #}
+    <div class="bg-white rounded-lg border border-gray-300 shadow-sm p-4 mb-3">
+        <div class="text-lg font-bold text-gray-900">{{ artikl.naziv if artikl else prijem.sifra }}</div>
+        <div class="text-sm text-gray-500 mt-0.5">
+            Šifra <span class="font-mono">{{ prijem.sifra }}</span>
+            {% if artikl and artikl.format %} · {{ artikl.format }}{% endif %}
+            · plan: <strong>{{ prijem.broj_paleta }}</strong> paleta
+        </div>
+    </div>
+
+    {# Skeniranje paleta #}
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md p-4 mb-3">
+        <label class="block text-sm font-semibold text-gray-600 mb-2">Dvostruko skeniranje: 1) paleta → 2) pozicija (Enter potvrđuje)</label>
+        <input id="barkod-input" name="barkod" type="text" autocomplete="off" autofocus
+               placeholder="1) Skeniraj barkod palete…"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();var p=document.getElementById('poz-input');if(p)p.focus();}"
+               class="w-full border-2 border-blue-300 rounded-lg px-4 py-3 text-lg font-mono
+                      focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <input id="poz-input" name="pozicija" type="text" autocomplete="off"
+               placeholder="2) Skeniraj poziciju (ili Enter za predloženu)"
+               hx-post="/skladiste/zaprimanje/plan/{{ prijem.id }}/potvrdi"
+               hx-trigger="keydown[key=='Enter']"
+               hx-target="#plan-stavke" hx-swap="outerHTML"
+               hx-include="[name='barkod']"
+               hx-disabled-elt="this"
+               class="w-full mt-2 border-2 border-blue-300 rounded-lg px-4 py-3 text-lg font-mono uppercase
+                      focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+
+    {% include "skladiste/_plan_stavke.html" %}
+</div>
+{% endblock %}

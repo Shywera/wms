@@ -1,0 +1,26 @@
+{% for p in palete %}
+<tr class="border-b border-gray-100 {% if loop.index0 % 2 %}bg-gray-50{% endif %} hover:bg-blue-50 {% if p.datum_out %}opacity-60{% endif %}">
+    <td class="px-3 py-2 font-mono text-xs font-semibold text-blue-700">{{ p.pozicija }}</td>
+    <td class="px-3 py-2 font-mono text-xs">{{ p.sifra or "—" }}</td>
+    <td class="px-3 py-2">{{ p.naziv or "—" }}</td>
+    <td class="px-3 py-2 font-mono text-xs text-gray-500">{{ p.lot or "—" }}</td>
+    <td class="px-3 py-2 text-right font-mono">{{ p.kolicina if p.kolicina is not none else "—" }}</td>
+    <td class="px-3 py-2 text-gray-500">{{ p.jedinica or "" }}</td>
+    <td class="px-3 py-2 font-mono text-xs">{{ p.datum_ulaza.strftime("%d.%m.%Y") if p.datum_ulaza else "—" }}</td>
+    <td class="px-3 py-2 font-mono text-xs">{{ p.rok_trajanja.strftime("%d.%m.%Y") if p.rok_trajanja else "—" }}</td>
+    <td class="px-3 py-2 font-mono text-xs text-gray-500">{{ p.datum_in.strftime("%d.%m.%Y %H:%M") if p.datum_in else "—" }}</td>
+    <td class="px-3 py-2 text-center">
+        {% if p.datum_out %}
+        <span class="text-[11px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-500">izdana</span>
+        {% else %}
+        <span class="text-[11px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">na skladištu</span>
+        {% endif %}
+    </td>
+    <td class="px-3 py-2 text-xs text-gray-500">{{ p.izvor or "—" }}</td>
+    <td class="px-3 py-2 font-mono text-xs text-gray-400">{{ p.qr_raw }}</td>
+</tr>
+{% else %}
+<tr><td colspan="12" class="px-3 py-8 text-center text-gray-400 text-sm">
+    {% if q %}Nema rezultata za „{{ q }}".{% else %}Nema paleta na skladištu.{% endif %}
+</td></tr>
+{% endfor %}

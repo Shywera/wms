@@ -1,0 +1,17 @@
+{% if paleta %}
+<div class="border-2 border-green-500 bg-green-50 rounded-lg p-5 text-center">
+    <div class="text-4xl leading-none">✓</div>
+    <div class="text-lg font-bold text-green-800 mt-1">Izdano s pozicije {{ paleta.pozicija }}</div>
+    <div class="text-sm text-gray-600 mt-0.5">{{ paleta.naziv or paleta.sifra or paleta.qr_raw }}</div>
+</div>
+{% if poruka %}
+<div class="border border-amber-300 bg-amber-50 rounded-lg p-3 mt-2 text-sm text-amber-800 font-semibold text-center">⚠ {{ poruka }}</div>
+{% endif %}
+<p class="text-center text-sm text-gray-400 mt-3">Skeniraj sljedeću paletu…</p>
+<script>var b=document.getElementById('barkod-input'); if(b){b.value='';b.focus();}</script>
+{% else %}
+<div class="border-2 border-red-500 bg-red-50 rounded-lg p-5">
+    <div class="text-lg font-bold text-red-700">✕ {{ poruka }}</div>
+</div>
+<script>var b=document.getElementById('barkod-input'); if(b){b.focus();b.select();}</script>
+{% endif %}

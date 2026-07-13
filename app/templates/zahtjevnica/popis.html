@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Zahtjevnice{% endblock %}
+{% block content %}
+
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-800 mb-1">Izdavanje po zahtjevnici</h1>
+    <p class="text-sm text-gray-500 mb-5">Uvezi zahtjevnicu, pa izdaj papir stavku po stavku.</p>
+
+    {% if greska %}
+    <div class="border-2 border-red-400 bg-red-50 rounded-lg p-3 mb-4 text-sm font-semibold text-red-700">✕ {{ greska }}</div>
+    {% endif %}
+
+    {# Uvoz — jedan klik: odabir datoteke odmah pokreće uvoz #}
+    <form id="uvoz-forma" method="post" action="/zahtjevnica/uvoz" enctype="multipart/form-data"
+          class="bg-white rounded-xl border-2 border-dashed border-gray-300 p-6 mb-6 text-center">
+        <div class="text-4xl mb-2">⤓</div>
+        <p class="text-base text-gray-700 font-semibold mb-3">Uvezi novu zahtjevnicu</p>
+        <label class="inline-block px-8 py-4 bg-green-600 hover:bg-green-700 text-white text-lg font-bold rounded-xl cursor-pointer">
+            Odaberi datoteku…
+            <input type="file" name="datoteka" accept=".xlsx,.csv,.pdf" required class="hidden"
+                   onchange="document.getElementById('uvoz-info').textContent='Uvozim: '+this.files[0].name+' …'; this.form.submit();">
+        </label>
+        <p id="uvoz-info" class="text-sm text-gray-500 mt-3">Excel (.xlsx), .csv ili .pdf — uvoz kreće sam čim odabereš datoteku.</p>
+    </form>
+
+    {# Popis #}
+    <h2 class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Zadnje zahtjevnice</h2>
+    <div class="bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+        {% for z in zahtjevnice %}
+        <a href="/zahtjevnica/{{ z.id }}" class="flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50">
+            <div class="flex-1 min-w-0">
+                <div class="font-semibold text-gray-800 truncate">{{ z.oznaka }}</div>
+                <div class="text-[11px] text-gray-400">{{ z.created_at.strftime("%d.%m.%Y %H:%M") if z.created_at else "" }} · {{ z.broj_papir }} papirnih stavki</div>
+            </div>
+            {% if z.gotovo %}
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-semibold">gotovo ✓</span>
+            {% else %}
+            <span class="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold font-mono">{{ z.broj_izdano }}/{{ z.broj_papir }} izdano</span>
+            {% endif %}
+        </a>
+        {% else %}
+        <div class="px-4 py-8 text-center text-gray-400 text-sm">Još nema uvezenih zahtjevnica.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

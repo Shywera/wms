@@ -1,0 +1,72 @@
+{% if greska %}
+<div class="border-2 border-red-400 bg-red-50 rounded-lg p-4 text-red-700 font-semibold">✕ {{ greska }}</div>
+{% elif p %}
+    {% if not p.palete %}
+    <div class="border-2 border-amber-400 bg-amber-50 rounded-lg p-4 text-amber-800">
+        ⚠ Nema aktivnih paleta za šifru <span class="font-mono">{{ p.sifra }}</span> na skladištu.
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md overflow-hidden">
+        <div class="bg-slate-700 px-4 py-2.5 flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-widest text-white">Predložene palete ({{ p.metoda | upper }})</span>
+            <span class="text-xs font-mono text-slate-200">traženo {{ p.trazeno | int }} araka</span>
+        </div>
+
+        {% if not p.dovoljno %}
+        <div class="bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-700 font-semibold">
+            ⚠ Nedovoljno na stanju — dostupno {{ p.ukupno | int }} od {{ p.trazeno | int }} araka ({{ p.palete | length }} paleta). Izdaj je onemogućen.
+        </div>
+        {% endif %}
+
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-slate-800 text-white text-left text-[11px] uppercase tracking-wide">
+                    <th class="px-3 py-2">#</th>
+                    <th class="px-3 py-2">Pozicija</th>
+                    <th class="px-3 py-2">Lot</th>
+                    <th class="px-3 py-2">Rok</th>
+                    <th class="px-3 py-2 text-right">Araka na paleti</th>
+                    <th class="px-3 py-2 text-right">Uzima se</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for row in p.palete %}
+            <tr class="border-b border-gray-100 {% if loop.index0 % 2 %}bg-gray-50{% endif %}">
+                <td class="px-3 py-2 text-gray-400 text-xs">{{ loop.index }}</td>
+                <td class="px-3 py-2 font-mono font-semibold text-blue-700">{{ row.paleta.pozicija }}</td>
+                <td class="px-3 py-2 font-mono text-xs text-gray-500">{{ row.paleta.lot or "—" }}</td>
+                <td class="px-3 py-2 font-mono text-xs">{{ row.paleta.rok_trajanja.strftime("%d.%m.%Y") if row.paleta.rok_trajanja else "—" }}</td>
+                <td class="px-3 py-2 text-right font-mono">{{ row.kolicina | int }}</td>
+                <td class="px-3 py-2 text-right font-mono font-semibold">{{ row.doprinos | int }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="bg-slate-50 border-t-2 border-slate-300 font-semibold">
+                    <td colspan="4" class="px-3 py-2 text-right text-gray-600">Ukupno (cijele palete):</td>
+                    <td class="px-3 py-2 text-right font-mono">{{ p.ukupno | int }}</td>
+                    <td class="px-3 py-2 text-right font-mono text-green-700">{{ p.trazeno | int }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        {% if p.dovoljno and p.zadnja_ostatak > 0 %}
+        <div class="bg-amber-50 border-t border-amber-200 px-4 py-2.5 text-sm text-amber-800">
+            ↩ Zadnja paleta premašuje za <strong>{{ p.zadnja_ostatak | int }} araka</strong> — uzmi cijelu paletu, a ostatak vrati kao <strong>novu paletu</strong> (zaprimanje).
+        </div>
+        {% endif %}
+
+        {% if p.dovoljno %}
+        <div class="p-4 border-t border-gray-200">
+            <form hx-post="/skladiste/izdaj/izvrsi" hx-target="#rezultat" hx-swap="innerHTML" hx-disabled-elt="find button">
+                <input type="hidden" name="ids" value="{{ p.palete | map(attribute='paleta.id') | join(',') }}">
+                <button type="submit"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white text-lg font-bold py-4 rounded-lg transition-colors">
+                    ↗ Izdaj {{ p.palete | length }} {{ 'paletu' if p.palete | length == 1 else 'palete' }}
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+{% endif %}

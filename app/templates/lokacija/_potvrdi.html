@@ -1,0 +1,23 @@
+<div class="border-2 border-amber-400 bg-amber-50 rounded-lg p-4">
+    <div class="font-bold text-amber-800 mb-1">
+        ⚠ Pozicija {{ pozicija }} već ima {{ postojece | length }}
+        {{ 'paletu' if postojece | length == 1 else 'palete/a' }}
+    </div>
+    <div class="text-sm text-amber-700 mb-3">
+        Postojeće:
+        {% for p in postojece %}<span class="font-mono">{{ p.qr_raw }}</span>{% if not loop.last %}, {% endif %}{% endfor %}.
+        <br>Staviti paletu <span class="font-mono font-bold">{{ barkod }}</span> na isto mjesto?
+        <span class="block text-xs text-amber-600 mt-1">Time se sve palete na ovoj poziciji označavaju kao <strong>nepotpune</strong>.</span>
+    </div>
+    <div class="flex gap-2">
+        <button hx-get="/lokacija/zaprimi/skeniraj?barkod={{ barkod }}" hx-target="#rez" hx-swap="innerHTML"
+                class="px-4 py-2 rounded bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200">Odustani</button>
+        <form hx-post="/lokacija/postavi" hx-target="#rez" hx-swap="innerHTML">
+            <input type="hidden" name="barkod" value="{{ barkod }}">
+            <input type="hidden" name="pozicija" value="{{ pozicija }}">
+            <input type="hidden" name="potvrdi" value="1">
+            {% if nepotpuna %}<input type="hidden" name="nepotpuna" value="1">{% endif %}
+            <button class="px-4 py-2 rounded bg-amber-600 text-white font-bold hover:bg-amber-700">Da, stavi na isto mjesto ▶</button>
+        </form>
+    </div>
+</div>

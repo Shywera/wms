@@ -1,0 +1,21 @@
+{% if paleta %}
+<div class="border-2 border-green-500 bg-green-50 rounded-lg p-5 text-center">
+    <div class="text-4xl leading-none">✓</div>
+    <div class="text-lg font-bold text-green-800 mt-1">Spremljeno na {{ paleta.pozicija }}</div>
+    <div class="text-sm text-gray-600 mt-0.5">{{ paleta.naziv or paleta.sifra or paleta.qr_raw }}{% if paleta.kolicina %} · {{ paleta.kolicina }} {{ paleta.jedinica or "" }}{% endif %}</div>
+</div>
+<p class="text-center text-sm text-gray-400 mt-3">Skeniraj sljedeću paletu…</p>
+<script>
+    var b = document.getElementById('barkod-input');
+    if (b) { b.value = ''; b.focus(); }
+</script>
+{% else %}
+<div class="border-2 border-red-500 bg-red-50 rounded-lg p-5">
+    <div class="text-lg font-bold text-red-700">✕ {{ greska }}</div>
+    <p class="text-sm text-red-600 mt-1">Pokušaj ponovno ili skeniraj drugu poziciju.</p>
+</div>
+<script>
+    var b = document.getElementById('barkod-input');
+    if (b) { b.focus(); b.select(); }
+</script>
+{% endif %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Zaprimanje — Skladište{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <h1 class="text-xl font-bold text-gray-800 mb-1">Zaprimanje palete</h1>
+    <p class="text-sm text-gray-500 mb-4">Skeniraj paletu, pa odaberi mjesto na karti ili skeniraj QR pozicije.</p>
+
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md p-4 mb-3">
+        <label class="block text-sm font-semibold text-gray-600 mb-2">1) Skeniraj barkod palete</label>
+        <input id="pal-input" name="barkod" type="text" autocomplete="off" autofocus
+               placeholder="Skeniraj paletu…"
+               hx-get="/lokacija/zaprimi/skeniraj" hx-trigger="keydown[key=='Enter']"
+               hx-target="#rez" hx-swap="innerHTML"
+               class="w-full border-2 border-blue-300 rounded-lg px-4 py-3 text-lg font-mono
+                      focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+
+    <div id="rez"></div>
+</div>
+{% endblock %}

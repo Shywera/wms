@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Karta skladišta (tlocrt){% endblock %}
+
+{% macro cell(c, sz='w-6 h-6') %}
+{% set base = '#f3f4f6' if c.status == 'slobodno' else ('#f59e0b' if c.status == 'istice' else ('#ef4444' if c.status == 'isteklo' else '#3b82f6')) %}
+<div data-info="{{ c.kod }} · {{ c.occ }}/{{ c.total }} zauzeto{% if c.nepotpuna %} · nepotpuna{% endif %}"
+     class="relative {{ sz }} rounded-sm border cursor-pointer shrink-0
+            {% if c.status == 'slobodno' %}border-gray-300{% elif c.status == 'istice' %}border-amber-600{% elif c.status == 'isteklo' %}border-red-600{% else %}border-blue-600{% endif %}"
+     style="background:{% if c.nepotpuna %}linear-gradient(135deg,{{ base }} 0 50%,#ef4444 50% 100%){% else %}{{ base }}{% endif %}">
+    {% if c.pozicija == 1 %}<span class="absolute inset-0 m-auto w-2 h-2 rounded-full bg-slate-900/70 ring-1 ring-white" title="P1"></span>{% endif %}
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="flex items-center gap-2 mb-3 text-sm">
+    <a href="/skladiste" class="text-slate-500 hover:text-slate-800">← Skladište</a>
+    <span class="text-gray-300">/</span>
+    <span class="font-semibold text-gray-700">Karta skladišta (tlocrt)</span>
+</div>
+
+<div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+    <div class="flex items-center gap-2 text-sm">
+        {% for z in zone %}
+        <a href="/skladiste/mapa/{{ z.zona }}" class="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 font-mono text-xs">
+            {{ z.zona }}: {{ z.zauzeto }}/{{ z.kapacitet }} ({{ z.postotak }}%)
+        </a>
+        {% endfor %}
+    </div>
+    <div class="flex items-center gap-3 text-xs text-gray-600">
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-gray-100 border border-gray-300 inline-block"></span> slobodno</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-blue-500 inline-block"></span> zauzeto</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-amber-500 inline-block"></span> ističe</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-sm inline-block border border-red-600" style="background:linear-gradient(135deg,#3b82f6 0 50%,#ef4444 50% 100%)"></span> nepotpuna</span>
+        <a href="/skladiste/stanje/pdf" target="_blank"
+           class="ml-2 inline-flex items-center gap-1 px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-800 text-white font-semibold">
+            🖨 Ispiši (PDF)
+        </a>
+    </div>
+</div>
+<p class="text-xs text-gray-400 mb-2">Pogled odozgo. Ćelija = pozicija (sve visine zajedno). <span class="inline-block w-2 h-2 rounded-full bg-slate-900/70 align-middle"></span> = P1 (uvijek desno, bliže ulazu). A1 (kraći red) je dolje desno do ulaza. Pređi/dodirni ćeliju za podatke · za detalje po visinama klikni <strong>zonu gore</strong>.</p>
+
+<div class="overflow-x-auto pb-4">
+    <div id="mapa-grid" class="inline-block bg-white border border-gray-300 rounded-lg shadow-sm p-5">
+        <div class="flex gap-6 items-stretch">
+
+            {# ── Zapad (C1) — lijevi okomiti regal; P1 dolje (do ulaza) ── #}
+            <div class="flex flex-col">
+                <a href="/skladiste/mapa/C" class="text-[11px] font-bold text-gray-600 hover:text-blue-700 text-center mb-1 leading-tight">Zapad<br>(C1)</a>
+                <div class="flex flex-col gap-px flex-1 justify-between">
+                    {% for c in tlocrt.zapad.pozicije | reverse %}{{ cell(c, 'w-10 h-4') }}{% endfor %}
+                </div>
+            </div>
+
+            {# ── Sredina — B gore, A dolje (A1 do ulaza); P1 desno ── #}
+            <div class="flex flex-col justify-center">
+                <a href="/skladiste/mapa/B" class="text-xs font-bold text-gray-600 hover:text-blue-700 hover:underline mb-2 text-center">Sredina B — detalji ↗</a>
+                {% for r in tlocrt.sredina_b | reverse %}
+                <div class="flex items-center gap-1 mb-1 {% if loop.index % 2 == 0 and not loop.last %}mb-4{% endif %}">
+                    <span class="w-9 text-[11px] font-mono text-right text-gray-400 shrink-0 pr-1">{{ r.naziv }}</span>
+                    {% for c in r.pozicije | reverse %}{{ cell(c) }}{% endfor %}
+                </div>
+                {% endfor %}
+                <div class="border-t-2 border-dashed border-gray-300 my-2"></div>
+                <a href="/skladiste/mapa/A" class="text-xs font-bold text-gray-600 hover:text-blue-700 hover:underline mb-2 text-center">Sredina A — detalji ↗</a>
+                {% for r in tlocrt.sredina_a | reverse %}
+                <div class="flex items-center gap-1 mb-1 {% if loop.index % 2 == 0 and not loop.last %}mb-4{% endif %}">
+                    <span class="w-9 text-[11px] font-mono text-right text-gray-400 shrink-0 pr-1">{{ r.naziv }}</span>
+                    {% for c in r.pozicije | reverse %}{{ cell(c) }}{% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+
+            {# ── Istok (D1) — desni okomiti regal; P1 dolje (do ulaza) ── #}
+            <div class="flex flex-col">
+                <a href="/skladiste/mapa/D" class="text-[11px] font-bold text-gray-600 hover:text-blue-700 text-center mb-1 leading-tight">Istok<br>(D1)</a>
+                <div class="flex flex-col gap-px flex-1 justify-between">
+                    {% for c in tlocrt.istok.pozicije | reverse %}{{ cell(c, 'w-10 h-4') }}{% endfor %}
+                </div>
+            </div>
+
+        </div>
+        <div class="text-sm font-bold text-blue-700 mt-3 text-right pr-1">ULAZ ↘</div>
+    </div>
+</div>
+
+<div id="cell-tip" class="hidden fixed z-50 bg-slate-800 text-white text-xs rounded px-2.5 py-1.5 shadow-lg pointer-events-none font-mono"></div>
+<script>
+(function () {
+    var tip = document.getElementById('cell-tip'), grid = document.getElementById('mapa-grid');
+    if (!tip || !grid) return;
+    function move(e){ var x=(e.touches?e.touches[0].clientX:e.clientX)+12, y=(e.touches?e.touches[0].clientY:e.clientY)+12;
+        tip.style.left=Math.min(x, window.innerWidth-tip.offsetWidth-8)+'px'; tip.style.top=y+'px'; }
+    function show(c,e){ tip.textContent=c.getAttribute('data-info'); tip.classList.remove('hidden'); move(e); }
+    function hide(){ tip.classList.add('hidden'); }
+    grid.addEventListener('mouseover', function(e){ var c=e.target.closest('[data-info]'); if(c) show(c,e); });
+    grid.addEventListener('mousemove', function(e){ if(!tip.classList.contains('hidden')) move(e); });
+    grid.addEventListener('mouseout', function(e){ if(e.target.closest('[data-info]')) hide(); });
+    grid.addEventListener('click', function(e){ var c=e.target.closest('[data-info]'); if(c){ show(c,e); clearTimeout(window.__t); window.__t=setTimeout(hide,3000);} });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Zaprimanje — Skladište{% endblock %}
+
+{% block content %}
+{% include "skladiste/_nav.html" %}
+<div class="max-w-xl mx-auto">
+    <div class="flex items-center justify-between mb-3">
+        <h1 class="text-xl font-bold text-gray-800">Zaprimanje — plan</h1>
+        <a href="/skladiste/zaprimanje/jedna" class="text-sm text-blue-600 hover:underline">Jedna paleta →</a>
+    </div>
+
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md p-4">
+        <label class="block text-sm font-semibold text-gray-600 mb-1">1 · Skeniraj jedan QR (dobivamo šifru)</label>
+        <input id="barkod-input" name="barkod" type="text" autocomplete="off" autofocus
+               placeholder="Skeniraj barkod papira…"
+               hx-get="/skladiste/zaprimanje/artikl"
+               hx-trigger="keyup[key=='Enter']"
+               hx-target="#rezultat" hx-swap="innerHTML"
+               hx-disabled-elt="this"
+               class="w-full border-2 border-blue-300 rounded-lg px-4 py-3 text-lg font-mono
+                      focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <p class="text-xs text-gray-400 mt-1">Stigne npr. 20 paleta istog papira — skeniraj jednu, upiši broj paleta, dobiješ plan pozicija.</p>
+    </div>
+
+    <div id="rezultat" class="mt-4"></div>
+</div>
+{% endblock %}

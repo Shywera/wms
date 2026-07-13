@@ -1,0 +1,15 @@
+<div class="border-2 border-green-500 bg-green-50 rounded-lg p-5 text-center">
+    <div class="text-4xl">✓</div>
+    <div class="font-bold text-green-800 text-lg mt-1">Paleta postavljena</div>
+    <div class="text-gray-700 mt-1">
+        <span class="font-mono">{{ paleta.qr_raw }}</span>
+        → <span class="font-mono font-bold text-lg">{{ paleta.pozicija }}</span>
+    </div>
+    {% if broj and broj > 1 %}
+    <div class="inline-block mt-2 text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-semibold">nepotpuna — {{ broj }}. paleta na ovoj poziciji</div>
+    {% elif nepotpuna %}
+    <div class="inline-block mt-2 text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-semibold">označena kao nepotpuna paleta</div>
+    {% endif %}
+    <div class="text-xs text-gray-400 mt-3">Skeniraj sljedeću paletu gore ↑</div>
+</div>
+<script>var p = document.getElementById('pal-input'); if (p) { p.value = ''; p.focus(); }</script>

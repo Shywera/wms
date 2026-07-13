@@ -1,0 +1,15 @@
+{% if greska %}
+<div class="border-2 border-red-400 bg-red-50 rounded-lg p-3 text-sm font-bold text-red-700">✕ {{ greska }}</div>
+{% else %}
+<div class="border-2 border-green-500 bg-green-50 rounded-lg p-5 text-center">
+    <div class="text-4xl">✓</div>
+    <div class="font-bold text-green-800 text-lg mt-1">Paleta izdana</div>
+    <div class="text-gray-700 mt-1">
+        <span class="font-mono">{{ paleta.qr_raw }}</span>
+        <span class="text-gray-400">(bila na {{ paleta.pozicija }})</span>
+    </div>
+    {% if upozorenje %}<div class="text-xs text-amber-700 mt-2">⚠ {{ upozorenje }}</div>{% endif %}
+    <div class="text-xs text-gray-400 mt-3">Skeniraj sljedeću paletu gore ↑</div>
+</div>
+{% endif %}
+<script>var p = document.getElementById('izd-input'); if (p) { p.value = ''; p.focus(); }</script>

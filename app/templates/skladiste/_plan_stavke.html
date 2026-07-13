@@ -1,0 +1,62 @@
+{% set potvrdjeno = stavke | selectattr('datum_potvrda') | list | length %}
+<div id="plan-stavke">
+    {% if zadnja_greska %}
+    <div class="border-2 border-red-400 bg-red-50 rounded-lg p-3 mb-3 text-sm font-bold text-red-700">✕ {{ zadnja_greska }}</div>
+    {% endif %}
+
+    {% if zadnja_upozorenje %}
+    <div class="border-2 border-amber-400 bg-amber-50 rounded-lg p-3 mb-3 text-sm font-bold text-amber-800">⚠ {{ zadnja_upozorenje }}</div>
+    {% endif %}
+
+    {% if prijem and stavke | length < prijem.broj_paleta %}
+    <div class="border border-amber-300 bg-amber-50 rounded-lg p-2 mb-3 text-xs text-amber-800">
+        ⚠ Plan ima {{ stavke | length }} mjesta, traženo {{ prijem.broj_paleta }} — nema dovoljno slobodnih pozicija (po zadanim pravilima/zoni).
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-lg border border-gray-300 shadow-sm overflow-hidden">
+        <div class="px-4 py-2.5 bg-slate-700 flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-widest text-white">Pozicije plana</span>
+            <span class="text-xs font-mono text-slate-200">{{ potvrdjeno }} / {{ stavke | length }} potvrđeno</span>
+        </div>
+        <table class="w-full text-sm">
+            <tbody>
+            {% for s in stavke %}
+            <tr class="border-b border-gray-100 {% if s.datum_potvrda %}bg-green-50{% endif %}">
+                <td class="px-3 py-2 text-gray-400 text-xs w-8">{{ s.redni_broj }}</td>
+                <td class="px-3 py-2 font-mono font-bold {% if s.datum_potvrda %}text-green-700{% else %}text-blue-700{% endif %}">{{ s.pozicija }}</td>
+                <td class="px-3 py-2 text-center w-28">
+                    {% if s.datum_potvrda %}
+                    <span class="text-[11px] px-1.5 py-0.5 rounded bg-green-100 text-green-700">✓ potvrđeno</span>
+                    {% else %}
+                    <span class="text-[11px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">čeka</span>
+                    {% endif %}
+                </td>
+                <td class="px-3 py-2 font-mono text-xs text-gray-400 text-right">
+                    {{ s.qr_raw or "" }}
+                    {% if s.datum_potvrda %}
+                    <button hx-post="/skladiste/zaprimanje/plan/{{ prijem.id }}/stavka/{{ s.id }}/vrati"
+                            hx-target="#plan-stavke" hx-swap="outerHTML"
+                            class="ml-2 text-[11px] px-1.5 py-0.5 rounded border border-amber-300 text-amber-700 hover:bg-amber-50">↩ vrati</button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if prijem and prijem.status == 'zavrsen' %}
+    <div class="border-2 border-green-500 bg-green-50 rounded-lg p-4 mt-3 text-center">
+        <div class="text-2xl">✓</div>
+        <div class="font-bold text-green-800">Plan završen — sve palete zaprimljene</div>
+        <a href="/skladiste/zaprimanje" class="inline-block mt-2 text-sm text-blue-600 hover:underline">Novo zaprimanje →</a>
+    </div>
+    {% endif %}
+</div>
+<script>
+    var b = document.getElementById('barkod-input');
+    if (b) { b.value = ''; b.focus(); }
+    var pp = document.querySelector('[name=pozicija]');
+    if (pp) pp.value = '';
+</script>

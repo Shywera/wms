@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Prioriteti smještaja — Skladište{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-2 mb-4 text-sm">
+    <a href="/skladiste" class="text-slate-500 hover:text-slate-800">← Skladište</a>
+    <span class="text-gray-300">/</span>
+    <span class="font-semibold text-gray-700">Prioriteti smještaja</span>
+</div>
+
+<div class="max-w-4xl">
+    <p class="text-sm text-gray-500 mb-4">
+        Pravila po šifri: u koje regale i kojim modom algoritam smješta palete pri zaprimanju.
+        Bez pravila → standardno (prvo slobodno, uz klasteriranje iste šifre).
+    </p>
+
+    {# ── Postojeća pravila ──────────────────────────────────────────────── #}
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md overflow-hidden mb-4">
+        <div class="bg-slate-700 px-4 py-2.5"><h2 class="text-xs font-bold uppercase tracking-widest text-white">Pravila</h2></div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-slate-800 text-white text-[11px] uppercase tracking-wide">
+                        <th class="px-3 py-2 text-left">Šifra</th>
+                        <th class="px-3 py-2 text-left">Mod</th>
+                        <th class="px-3 py-2 text-left">Dozvoljeni regali</th>
+                        <th class="px-3 py-2 text-left">Napomena</th>
+                        <th class="px-3 py-2 text-center w-20">Aktivno</th>
+                        <th class="px-3 py-2 w-16"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for p in pravila %}
+                <tr class="border-b border-gray-100 {% if loop.index0 % 2 %}bg-gray-50{% endif %} {% if not p.aktivan %}opacity-50{% endif %}">
+                    <td class="px-3 py-2 font-mono text-xs">{{ p.sifra }}</td>
+                    <td class="px-3 py-2">{{ modovi.get(p.mod, p.mod) }}</td>
+                    <td class="px-3 py-2 font-mono text-xs">{{ p.rack_ids or "— svi —" }}</td>
+                    <td class="px-3 py-2 text-xs text-gray-500">{{ p.napomena or "" }}</td>
+                    <td class="px-3 py-2 text-center">
+                        <form method="post" action="/skladiste/prioriteti/{{ p.id }}/toggle">
+                            <button class="text-[11px] px-2 py-0.5 rounded {% if p.aktivan %}bg-green-100 text-green-700{% else %}bg-gray-200 text-gray-500{% endif %}">{{ "DA" if p.aktivan else "NE" }}</button>
+                        </form>
+                    </td>
+                    <td class="px-3 py-2 text-right">
+                        <form method="post" action="/skladiste/prioriteti/{{ p.id }}/obrisi" onsubmit="return confirm('Obrisati pravilo za {{ p.sifra }}?')">
+                            <button class="text-xs text-red-500 hover:text-red-700">obriši</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="px-3 py-6 text-center text-gray-400 text-sm">Nema pravila — algoritam koristi standardno.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# ── Novo pravilo ──────────────────────────────────────────────────── #}
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md overflow-hidden">
+        <div class="bg-slate-700 px-4 py-2.5"><h2 class="text-xs font-bold uppercase tracking-widest text-white">Novo pravilo</h2></div>
+        <form method="post" action="/skladiste/prioriteti" class="p-4 grid grid-cols-12 gap-3 items-end">
+            <div class="col-span-3">
+                <label class="block text-[10px] font-semibold text-gray-500 mb-0.5 uppercase">Šifra</label>
+                <input name="sifra" required class="w-full border border-gray-400 rounded px-2 py-1.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="col-span-3">
+                <label class="block text-[10px] font-semibold text-gray-500 mb-0.5 uppercase">Mod</label>
+                <select name="mod" class="w-full border border-gray-400 rounded px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    {% for k, v in modovi.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="col-span-3">
+                <label class="block text-[10px] font-semibold text-gray-500 mb-0.5 uppercase">Dozvoljeni regali (CSV)</label>
+                <input name="rack_ids" placeholder="npr. A1,A2,B1" class="w-full border border-gray-400 rounded px-2 py-1.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="col-span-3">
+                <label class="block text-[10px] font-semibold text-gray-500 mb-0.5 uppercase">Napomena</label>
+                <input name="napomena" class="w-full border border-gray-400 rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="col-span-12 flex items-center justify-between">
+                <p class="text-[11px] text-gray-400">Regali: {{ regali | join(", ") }}</p>
+                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded">+ Dodaj pravilo</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

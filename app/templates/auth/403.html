@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Nema dozvole{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-16 text-center">
+    <div class="text-5xl mb-3">🔒</div>
+    <h1 class="text-xl font-bold text-gray-800 mb-2">Nemaš dozvolu za ovu radnju</h1>
+    <p class="text-sm text-gray-500 mb-5">
+        Potrebna dozvola: <span class="font-semibold text-gray-700">{{ opis }}</span>.
+        Obrati se administratoru ako ti treba pristup.
+    </p>
+    <a href="/skladiste" class="inline-block px-4 py-2 rounded bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700">← Nadzorna ploča</a>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{# Kartica artikla iz ERP/mock lookupa. Zebra PDA: velik tekst, jasno stanje. #}
+{% if artikl %}
+<div class="border-2 border-green-400 bg-green-50 rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-2">
+        <span class="text-green-600 text-xl leading-none">✓</span>
+        <span class="text-xs font-bold uppercase tracking-widest text-green-700">Artikl pronađen</span>
+        <span class="ml-auto font-mono text-xs text-gray-400">{{ barkod }}</span>
+    </div>
+    <div class="text-lg font-bold text-gray-900 leading-snug">{{ artikl.naziv or "—" }}</div>
+    <div class="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-sm">
+        <div><span class="text-gray-500">Šifra:</span> <span class="font-mono font-semibold">{{ artikl.sifra }}</span></div>
+        <div><span class="text-gray-500">Količina:</span> <span class="font-semibold">{{ artikl.kolicina }} {{ artikl.jedinica or "" }}</span></div>
+        <div><span class="text-gray-500">Lot:</span> <span class="font-mono">{{ artikl.lot or "—" }}</span></div>
+        <div><span class="text-gray-500">Rok:</span> <span class="font-mono">{{ artikl.rok_trajanja.strftime("%d.%m.%Y") if artikl.rok_trajanja else "—" }}</span></div>
+    </div>
+</div>
+{% elif barkod %}
+<div class="border-2 border-amber-400 bg-amber-50 rounded-lg p-4">
+    <div class="flex items-center gap-2">
+        <span class="text-amber-600 text-xl leading-none">⚠</span>
+        <span class="text-sm font-bold text-amber-800">Barkod <span class="font-mono">{{ barkod }}</span> nije pronađen u ERP-u</span>
+    </div>
+    <p class="text-xs text-amber-700 mt-1">Ručni unos podataka dolazi u sljedećoj fazi.</p>
+</div>
+{% endif %}

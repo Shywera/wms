@@ -1,0 +1,47 @@
+{% if greska %}
+<div class="border-2 border-red-400 bg-red-50 rounded-lg p-3 mb-3 text-sm font-bold text-red-700">✕ {{ greska }}</div>
+{% endif %}
+
+{% if barkod %}
+<div class="bg-white rounded-lg border border-gray-300 shadow-sm p-4 mb-3">
+    <div class="text-xs font-semibold text-gray-500">Paleta</div>
+    <div class="text-lg font-mono font-bold text-gray-900">{{ barkod }}</div>
+    {% if vec %}
+    <div class="mt-2 border border-amber-300 bg-amber-50 rounded-lg p-2 text-sm text-amber-800">
+        ⚠ Ova paleta je već na poziciji <strong>{{ vec.pozicija }}</strong>. Prvo je izdaj pa ponovno zaprimi.
+    </div>
+    {% endif %}
+</div>
+
+{% if not vec %}
+<div class="bg-white rounded-lg border border-gray-300 shadow-md p-4">
+    <label class="flex items-center gap-2 mb-3 pb-3 border-b border-gray-100 text-sm font-semibold text-gray-700 cursor-pointer">
+        <input type="checkbox" name="nepotpuna" value="1" class="w-5 h-5 rounded">
+        Paleta je <span class="text-purple-700">nepotpuna</span> (stane još na isto mjesto)
+    </label>
+
+    <label class="block text-sm font-semibold text-gray-600 mb-2">2) Skeniraj QR pozicije</label>
+    <input type="hidden" name="barkod" value="{{ barkod }}">
+    <input id="poz-input" name="pozicija" type="text" autocomplete="off"
+           placeholder="npr. A2P5V3"
+           hx-post="/lokacija/postavi" hx-trigger="keydown[key=='Enter']"
+           hx-include="[name='barkod'],[name='nepotpuna']" hx-target="#rez" hx-swap="innerHTML"
+           class="w-full border-2 border-blue-300 rounded-lg px-4 py-3 text-lg font-mono uppercase
+                  focus:outline-none focus:ring-2 focus:ring-blue-500">
+
+    <div class="text-center text-gray-400 text-xs my-3">— ili odaberi mjesto na karti —</div>
+
+    <div class="flex flex-wrap gap-2">
+        {% for z in zone %}
+        <button hx-get="/lokacija/zaprimi/karta/{{ z }}?barkod={{ barkod }}"
+                hx-include="[name='nepotpuna']" hx-target="#rez" hx-swap="innerHTML"
+                class="flex-1 min-w-[64px] py-3 rounded-lg bg-slate-700 hover:bg-slate-800 text-white font-bold text-lg">
+            Zona {{ z }}
+        </button>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endif %}
+
+<script>var x = document.getElementById('poz-input'); if (x) x.focus();</script>

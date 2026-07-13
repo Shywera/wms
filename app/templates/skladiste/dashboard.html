@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Skladište — WMS{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+    <div>
+        <h1 class="text-xl font-bold text-gray-800">Skladište — WMS</h1>
+        <p class="text-sm text-gray-500 mt-0.5">Upravljanje paletama · {{ ukupno | fmtn }} mjesta · 20 regala (zone A–D)</p>
+    </div>
+</div>
+
+{# ── Funkcije (velike tipke — prvo što skladištar vidi) ──────────────────── #}
+{% set u = request.state.user %}
+{% set perms = u.dozvole.split(',') if (u and u.dozvole) else [] %}
+{% set is_admin = u and 'admin' in perms %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+    {% if is_admin or 'zaprimanje' in perms %}
+    <a href="/lokacija/zaprimi"
+       class="border-2 border-blue-300 bg-blue-50 hover:bg-blue-100 hover:border-blue-500 rounded-xl p-6 text-center transition-colors">
+        <div class="text-4xl leading-none mb-2">⬇</div>
+        <div class="text-lg font-bold text-blue-800">Zaprimanje</div>
+        <div class="text-xs text-gray-500 mt-1">Skeniraj paletu → odaberi mjesto</div>
+    </a>
+    {% endif %}
+    {% if is_admin or 'izdavanje' in perms %}
+    <a href="/lokacija/izdaj"
+       class="border-2 border-red-300 bg-red-50 hover:bg-red-100 hover:border-red-500 rounded-xl p-6 text-center transition-colors">
+        <div class="text-4xl leading-none mb-2">⬆</div>
+        <div class="text-lg font-bold text-red-800">Izdavanje</div>
+        <div class="text-xs text-gray-500 mt-1">Skeniraj paletu → potvrdi</div>
+    </a>
+    <a href="/zahtjevnica"
+       class="border-2 border-green-300 bg-green-50 hover:bg-green-100 hover:border-green-500 rounded-xl p-6 text-center transition-colors">
+        <div class="text-4xl leading-none mb-2">☰</div>
+        <div class="text-lg font-bold text-green-800">Izdavanje po zahtjevnici</div>
+        <div class="text-xs text-gray-500 mt-1">Uvezi zahtjevnicu → izdaj papir</div>
+    </a>
+    {% endif %}
+</div>
+<div class="flex gap-3 mb-5">
+    <a href="/skladiste/mapa" class="flex-1 border border-gray-300 bg-white hover:bg-gray-50 rounded-lg p-3 text-center text-sm font-semibold text-gray-700">▦ Karta skladišta</a>
+    <a href="/skladiste/palete" class="flex-1 border border-gray-300 bg-white hover:bg-gray-50 rounded-lg p-3 text-center text-sm font-semibold text-gray-700">≣ Sve palete</a>
+</div>
+
+{# ── Metrike ─────────────────────────────────────────────────────────────── #}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md p-4">
+        <div class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Zauzeto</div>
+        <div class="text-3xl font-bold font-mono text-blue-700 mt-1">{{ zauzeto | fmtn }}</div>
+        <div class="text-xs text-gray-400 mt-0.5">{{ postotak_ukupno }}% kapaciteta</div>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md p-4">
+        <div class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Slobodno</div>
+        <div class="text-3xl font-bold font-mono text-green-700 mt-1">{{ slobodno | fmtn }}</div>
+        <div class="text-xs text-gray-400 mt-0.5">mjesta dostupno</div>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md p-4">
+        <div class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Ukupno mjesta</div>
+        <div class="text-3xl font-bold font-mono text-slate-700 mt-1">{{ ukupno | fmtn }}</div>
+        <div class="text-xs text-gray-400 mt-0.5">fiksni raspored</div>
+    </div>
+    <div class="bg-white rounded-lg border border-gray-300 shadow-md p-4">
+        <div class="text-[10px] font-bold uppercase tracking-widest text-gray-400">Ističe za 30 dana</div>
+        <div class="text-3xl font-bold font-mono {% if istice > 0 %}text-amber-600{% else %}text-gray-400{% endif %} mt-1">{{ istice | fmtn }}</div>
+        <div class="text-xs text-gray-400 mt-0.5">paleta po roku</div>
+    </div>
+</div>
+
+{# ── Popunjenost po zonama ───────────────────────────────────────────────── #}
+<div class="bg-white rounded-lg border border-gray-300 shadow-md overflow-hidden mb-5">
+    <div class="bg-slate-700 px-4 py-2.5">
+        <h2 class="text-xs font-bold uppercase tracking-widest text-white">Popunjenost po zonama</h2>
+    </div>
+    <div class="p-4 space-y-3">
+        {% for z in zone %}
+        <div>
+            <div class="flex items-center justify-between text-sm mb-1">
+                <span class="font-semibold text-gray-700">Zona {{ z.zona }}</span>
+                <span class="font-mono text-xs text-gray-500">{{ z.zauzeto | fmtn }} / {{ z.kapacitet | fmtn }} · {{ z.postotak }}%</span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                <div class="h-2.5 rounded-full transition-all
+                            {% if z.postotak >= 90 %}bg-red-500{% elif z.postotak >= 70 %}bg-amber-500{% else %}bg-blue-500{% endif %}"
+                     style="width: {{ z.postotak }}%"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

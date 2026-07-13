@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}{{ z.oznaka }}{% endblock %}
+{% block content %}
+
+<div class="max-w-3xl mx-auto" x-data="{ samoArci: true }">
+
+    {# Breadcrumb + progres #}
+    <div class="flex items-center gap-3 mb-3 flex-wrap">
+        <a href="/zahtjevnica" class="text-sm text-blue-600 hover:underline">← Zahtjevnice</a>
+        <h1 class="text-xl font-bold text-gray-800">{{ z.oznaka }}</h1>
+        <span class="ml-auto text-sm font-mono px-3 py-1 rounded-full bg-slate-100 text-slate-700">
+            <span id="z-progres">{{ z.broj_izdano }} / {{ z.broj_papir }}</span> izdano
+        </span>
+    </div>
+
+    {% if dup_id %}
+    <div class="border-2 border-amber-400 bg-amber-50 rounded-lg p-3 mb-4 text-sm text-amber-800">
+        ⚠ <b>Upozorenje:</b> zahtjevnica istog sadržaja već je uvezena
+        (<a href="/zahtjevnica/{{ dup_id }}" class="underline font-semibold">#{{ dup_id }}</a>).
+        Ako je ovo greška, obriši ovaj uvoz dolje.
+    </div>
+    {% endif %}
+
+    {# Akcije #}
+    <div class="flex items-center justify-end mb-3">
+        <form method="post" action="/zahtjevnica/{{ z.id }}/obrisi"
+              onsubmit="return confirm('Obrisati ovu zahtjevnicu?')">
+            <button class="text-[11px] text-red-500 hover:text-red-700 border border-red-200 rounded px-2 py-1">Obriši zahtjevnicu</button>
+        </form>
+    </div>
+
+    {# Papir stavke — glavni tok #}
+    {% if z.papir_stavke %}
+    <div class="space-y-2">
+        {% for s in z.papir_stavke %}
+        {% include "zahtjevnica/_stavka.html" %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-lg border border-gray-300 p-6 text-center text-gray-400 text-sm">
+        Nema papirnih stavki u ovoj zahtjevnici (možda su sve boje/lakovi za druga skladišta).
+    </div>
+    {% endif %}
+
+    {# Ostale stavke — nije za ovo skladište (sakriveno, prikaz na klik) #}
+    {% if z.ostale_stavke %}
+    {% set broj_na_stanju = z.ostale_stavke | selectattr("sifra", "in", stanje_ostalih) | list | length %}
+    {% if broj_na_stanju > 0 %}
+    <div x-show="samoArci" class="mt-6 border-2 border-amber-400 bg-amber-50 rounded-lg p-3 text-sm text-amber-800 flex items-center gap-2 flex-wrap">
+        <span>⚠ <b>{{ broj_na_stanju }}</b> stavka/e sa zahtjevnice (boja/lak/dr.) ipak <b>ima stanje u ovom skladištu</b>.</span>
+        <button type="button" @click="samoArci = false" class="underline font-semibold">Pogledaj i dodaj u izdavanje</button>
+    </div>
+    {% endif %}
+    <div class="mt-4">
+        <button type="button" @click="samoArci = !samoArci"
+                class="text-xs text-gray-400 hover:text-gray-600 underline"
+                x-text="samoArci ? 'Prikaži i ostalo sa zahtjevnice ({{ z.ostale_stavke|length }} — boje, lak, puder…)' : 'Sakrij ostalo'"></button>
+        <div x-show="!samoArci" x-cloak class="mt-2">
+            <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">
+                Nije za ovo skladište — ide u druga skladišta
+            </p>
+            <div class="bg-gray-50 rounded-lg border border-gray-200 divide-y divide-gray-100">
+                {% for s in z.ostale_stavke %}
+                {% set st = stanje_ostalih.get(s.sifra) %}
+                <div class="flex items-center gap-3 px-3 py-2 text-sm {% if not st %}opacity-60{% endif %}">
+                    <span class="text-gray-400 font-mono text-[11px]">{{ s.sifra }}</span>
+                    <span class="flex-1 text-gray-600 truncate">{{ s.naziv or "—" }}</span>
+                    <span class="text-gray-500 font-mono shrink-0">{{ s.trazena_kolicina|fmtn }} {{ s.jedinica or "" }}</span>
+                    {% if st %}
+                    <form method="post" action="/zahtjevnica/{{ z.id }}/stavka/{{ s.id }}/ukljuci" class="shrink-0">
+                        <button class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg"
+                                title="Ova šifra je na stanju ovog skladišta — dodaj je u popis za izdavanje">
+                            + Dodaj u izdavanje <span class="font-mono">({{ st.n }} pal.)</span>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <p class="text-[11px] text-gray-400 mt-1">Žuti gumb se pojavi samo ako je ta roba ipak na stanju ovog skladišta.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

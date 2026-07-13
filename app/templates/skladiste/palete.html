@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Sve palete — Skladište{% endblock %}
+
+{% block content %}
+<div class="flex items-center gap-2 mb-4 text-sm">
+    <a href="/skladiste" class="text-slate-500 hover:text-slate-800">← Skladište</a>
+    <span class="text-gray-300">/</span>
+    <span class="font-semibold text-gray-700">Sve palete</span>
+</div>
+
+<h1 class="text-xl font-bold text-gray-800 mb-3">Palete na skladištu</h1>
+
+<div class="bg-white rounded-lg border border-gray-300 shadow-md overflow-hidden">
+    <div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-3 flex-wrap">
+        <input type="search" name="q" placeholder="Pretraži šifru / naziv / barkod / poziciju / lot…"
+               hx-get="/skladiste/palete/search"
+               hx-trigger="input changed delay:300ms, search"
+               hx-target="#palete-tbody" hx-swap="innerHTML"
+               hx-include="[name='sve']"
+               class="w-96 border border-gray-400 rounded-lg px-3 py-1.5 text-sm bg-white
+                      focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox" name="sve" value="1"
+                   hx-get="/skladiste/palete/search" hx-target="#palete-tbody" hx-swap="innerHTML"
+                   hx-include="[name='q']"
+                   class="w-4 h-4 rounded border-gray-400 text-blue-600">
+            Prikaži i izdane
+        </label>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-slate-800 text-white text-left text-[11px] uppercase tracking-wide">
+                    <th class="px-3 py-2">Pozicija</th>
+                    <th class="px-3 py-2">Šifra</th>
+                    <th class="px-3 py-2">Naziv</th>
+                    <th class="px-3 py-2">Lot</th>
+                    <th class="px-3 py-2 text-right">Količina</th>
+                    <th class="px-3 py-2">Jed.</th>
+                    <th class="px-3 py-2">Datum ulaza</th>
+                    <th class="px-3 py-2">Rok</th>
+                    <th class="px-3 py-2">Zaprimljeno</th>
+                    <th class="px-3 py-2 text-center">Status</th>
+                    <th class="px-3 py-2">Izvor</th>
+                    <th class="px-3 py-2">Barkod</th>
+                </tr>
+            </thead>
+            <tbody id="palete-tbody" hx-get="/skladiste/palete/search" hx-trigger="load" hx-swap="innerHTML">
+                <tr><td colspan="12" class="px-3 py-8 text-center text-gray-400 text-sm">Učitavam…</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
