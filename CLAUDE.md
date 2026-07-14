@@ -47,6 +47,17 @@ app/templates/         base.html (izbornik gated po dozvolama) + auth/ + skladis
 - **Portovi:** ERP=8000, **WMS-app=8600**, Reklamacije-app=8601.
 - **NIKAD ne commitati:** `.env`, `*.db`, `.venv`, `__pycache__` (u `.gitignore`).
 
+## CI / testovi / Docker
+- **CI:** GitHub Actions (`.github/workflows/ci.yml`) — testovi na **windows-latest**
+  (PDF fontovi!), docker build validacija na ubuntu. Badge u README.
+- **Testovi** (`tests/`): `conftest.py` postavlja `DATABASE_URL` na privremenu bazu
+  PRIJE importa appa — testovi NIKAD ne diraju stvarni `wms.db`. Lokalno:
+  `.venv\Scripts\python -m pytest tests/ -q`.
+- **PDF fontovi:** `_font_datoteka()` u `pdf.py` — Windows Arial ili DejaVu (Docker/Linux).
+- **Docker:** `Dockerfile` + `compose.yaml` (port 8600, volumen `wms-data`, DejaVu fontovi).
+- ⚠ NIKAD ne pokretati testove bez conftest-a i ne brisati `wms.db` (stvarni podaci;
+  auto-backup u `backup/` je spasio stvar jednom — ne oslanjati se na to).
+
 ## VAŽNO — legacy ERP (READ-ONLY)
 `ERP_ADAPTER=erp` spaja se na legacy ERP (REST + Basic auth) i **mora ostati
 isključivo za čitanje** — nikad ne pisati/mijenjati podatke u ERP-u. Kredencijali

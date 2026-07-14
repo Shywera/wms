@@ -40,6 +40,14 @@ Za trajni rad na serveru kao Windows servis: vidi **[SERVER.md](SERVER.md)**.
 | `ERP_ADAPTER` | `mock` (demo podaci, zadano) ili `erp` (REST veza na legacy ERP, read-only) |
 | `DATABASE_URL` | zadano SQLite; podržan i PostgreSQL |
 
+## Docker (opcionalno)
+
+```bash
+docker compose up -d        # izgradi i pokreni na http://localhost:8600
+```
+Baza se čuva u imenovanom volumenu (`wms-data`); postavke kroz varijable okruženja
+(`ADMIN_PASSWORD`, `SECRET_KEY`). Image se automatski validira u CI-ju.
+
 ## Napomena
 
 Repozitorij koristi **demo šifrarnik materijala** — u produkciji se podaci o artiklima
