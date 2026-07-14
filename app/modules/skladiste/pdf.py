@@ -27,9 +27,19 @@ from app.modules.skladiste.adapter import get_adapter
 from app.modules.skladiste.models import Paleta, Prijem
 
 # ── Font (hrvatski znakovi) — isti pristup kao reklamacije/utils.py ─────────────
+def _font_datoteka(win_naziv, dejavu_naziv):
+    """Prva postojeća font-datoteka: Windows Arial ili DejaVu (Linux/Docker)."""
+    import os
+    for p in (f"C:/Windows/Fonts/{win_naziv}",
+              f"/usr/share/fonts/truetype/dejavu/{dejavu_naziv}"):
+        if os.path.exists(p):
+            return p
+    return f"C:/Windows/Fonts/{win_naziv}"
+
+
 try:
-    pdfmetrics.registerFont(TTFont("F",  "C:/Windows/Fonts/arial.ttf"))
-    pdfmetrics.registerFont(TTFont("FB", "C:/Windows/Fonts/arialbd.ttf"))
+    pdfmetrics.registerFont(TTFont("F",  _font_datoteka("arial.ttf",   "DejaVuSans.ttf")))
+    pdfmetrics.registerFont(TTFont("FB", _font_datoteka("arialbd.ttf", "DejaVuSans-Bold.ttf")))
     pdfmetrics.registerFontFamily("F", normal="F", bold="FB", italic="F", boldItalic="FB")
     _FONT, _FONTB = "F", "FB"
 except Exception:

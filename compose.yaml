@@ -1,0 +1,15 @@
+services:
+  wms:
+    build: .
+    ports:
+      - "8600:8600"
+    environment:
+      - DATABASE_URL=sqlite:////data/wms.db
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - SECRET_KEY=${SECRET_KEY:-promijeni-me-u-env}
+    volumes:
+      - wms-data:/data
+    restart: unless-stopped
+
+volumes:
+  wms-data:

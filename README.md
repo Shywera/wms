@@ -1,5 +1,7 @@
 # WMS — Sustav upravljanja skladištem
 
+[![CI](https://github.com/Shywera/wms/actions/workflows/ci.yml/badge.svg)](https://github.com/Shywera/wms/actions/workflows/ci.yml)
+
 Web aplikacija za upravljanje paletnim skladištem u tiskarskoj proizvodnji.
 Dizajnirana za rad sa **ručnim barkod skenerima** (Zebra i sl.) — velika polja,
 potvrda Enterom, minimalan broj koraka po operaciji.
