@@ -28,7 +28,7 @@ if errorlevel 1 goto nopy
 echo.
 echo [WMS] Pokrecem server na http://localhost:8600
 echo Za prekid: CTRL+C pa zatvori prozor.
-.venv\Scripts\uvicorn app.main:app --host 0.0.0.0 --port 8600
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8600
 echo.
 echo Server je zaustavljen.
 pause
