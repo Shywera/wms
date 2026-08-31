@@ -13,6 +13,18 @@
         </span>
     </div>
 
+    {% if z.gotovo %}
+    <div class="border-2 border-green-500 bg-green-50 rounded-lg p-4 mb-4 flex items-center justify-between flex-wrap gap-3">
+        <div>
+            <div class="font-bold text-green-800">✓ Sve stavke izdane</div>
+            <div class="text-sm text-green-700">Zahtjevnica je u potpunosti obrađena.</div>
+        </div>
+        <a href="/zahtjevnica" class="px-5 py-2 rounded-lg bg-white border-2 border-green-500 text-green-700 font-bold text-sm hover:bg-green-100">
+            ✓ Gotovo — natrag na popis zahtjevnica
+        </a>
+    </div>
+    {% endif %}
+
     {% if dup_id %}
     <div class="border-2 border-amber-400 bg-amber-50 rounded-lg p-3 mb-4 text-sm text-amber-800">
         ⚠ <b>Upozorenje:</b> zahtjevnica istog sadržaja već je uvezena

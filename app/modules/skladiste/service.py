@@ -144,6 +144,9 @@ def zaprimi_paletu(
         return None, f"Nevaljana pozicija: {pozicija}"
     if poz.kod in zauzete_pozicije(db):
         return None, f"Pozicija {poz.kod} je već zauzeta."
+    vec = aktivne_za_barkod(db, qr_raw)
+    if vec:
+        return None, f"Paleta {qr_raw} je već aktivna na poziciji {vec[0].pozicija}."
 
     p = Paleta(
         qr_raw=(qr_raw or "").strip(), pozicija=poz.kod,

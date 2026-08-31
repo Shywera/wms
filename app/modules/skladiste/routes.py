@@ -76,13 +76,6 @@ def _to_float(v):
         return None
 
 
-def _to_date(v):
-    try:
-        return date.fromisoformat(str(v).strip()) if str(v).strip() else None
-    except Exception:
-        return None
-
-
 # ─── Zaprimanje (glavno = više paleta, plan) ──────────────────────────────────
 
 @router.get("/zaprimanje", response_class=HTMLResponse)
@@ -160,54 +153,6 @@ def zaprimanje_plan_odustani(request: Request, pid: int, izbrisi: str = Form("")
     return RedirectResponse("/skladiste/zaprimanje", status_code=303)
 
 
-# ─── Zaprimanje jedne palete (pod-opcija) ─────────────────────────────────────
-
-@router.get("/zaprimanje/jedna", response_class=HTMLResponse)
-def zaprimanje_jedna(request: Request):
-    return templates.TemplateResponse(request, "skladiste/zaprimanje_jedna.html", {})
-
-
-@router.get("/zaprimanje/jedna/artikl", response_class=HTMLResponse)
-def zaprimanje_jedna_artikl(request: Request, barkod: str = "", db: Session = Depends(get_db)):
-    barkod = (barkod or "").strip()
-    artikl = get_adapter().lookup_barcode(barkod) if barkod else None
-    sifra = artikl.sifra if artikl else None
-    prijedlozi = svc.predlozi_mjesta(db, 1, sifra=sifra)
-    predlozeno = prijedlozi[0] if prijedlozi else ""
-    return templates.TemplateResponse(request, "skladiste/_zaprimi_forma.html", {
-        "barkod": barkod, "artikl": artikl, "predlozeno": predlozeno,
-        "nema_mjesta": not prijedlozi,
-    })
-
-
-@router.post("/zaprimanje/jedna/zaprimi", response_class=HTMLResponse)
-def zaprimanje_jedna_zaprimi(
-    request: Request,
-    barkod: str = Form(""), pozicija: str = Form(""),
-    sifra: str = Form(""), naziv: str = Form(""), kolicina: str = Form(""),
-    jedinica: str = Form(""), rok_trajanja: str = Form(""), lot: str = Form(""),
-    db: Session = Depends(get_db),
-):
-    barkod = barkod.strip()
-    artikl = get_adapter().lookup_barcode(barkod) if barkod else None
-    if artikl:
-        paleta, greska = svc.zaprimi_paletu(
-            db, qr_raw=barkod, pozicija=pozicija, sifra=artikl.sifra, naziv=artikl.naziv,
-            kolicina=artikl.kolicina, jedinica=artikl.jedinica,
-            rok_trajanja=artikl.rok_trajanja, datum_ulaza=artikl.datum, lot=artikl.lot,
-            izvor="erp",
-        )
-    else:
-        paleta, greska = svc.zaprimi_paletu(
-            db, qr_raw=barkod, pozicija=pozicija, sifra=(sifra or None),
-            naziv=(naziv or None), kolicina=_to_float(kolicina), jedinica=(jedinica or None),
-            rok_trajanja=_to_date(rok_trajanja), lot=(lot or None), izvor="rucno",
-        )
-    return templates.TemplateResponse(request, "skladiste/_zaprimi_rezultat.html", {
-        "paleta": paleta, "greska": greska,
-    })
-
-
 # ─── Izdavanje (glavno = po količini araka) ───────────────────────────────────
 
 @router.get("/izdaj", response_class=HTMLResponse)
@@ -234,28 +179,6 @@ def izdaj_izvrsi(request: Request, ids: str = Form(""), db: Session = Depends(ge
     return templates.TemplateResponse(request, "skladiste/_izdaj_gotovo.html", {"n": n})
 
 
-# ─── Izdavanje jedne palete (pod-opcija, skener) ──────────────────────────────
-
-@router.get("/izdaj/jedna", response_class=HTMLResponse)
-def izdaj_jedna(request: Request):
-    return templates.TemplateResponse(request, "skladiste/izdaj_jedna.html", {})
-
-
-@router.get("/izdaj/jedna/skeniraj", response_class=HTMLResponse)
-def izdaj_jedna_skeniraj(request: Request, barkod: str = "", db: Session = Depends(get_db)):
-    barkod = (barkod or "").strip()
-    palete = svc.aktivne_za_barkod(db, barkod) if barkod else []
-    return templates.TemplateResponse(request, "skladiste/_izdaj_forma.html", {
-        "barkod": barkod, "palete": palete,
-    })
-
-
-@router.post("/izdaj/jedna/{paleta_id}", response_class=HTMLResponse)
-def izdaj_jedna_potvrdi(request: Request, paleta_id: int, db: Session = Depends(get_db)):
-    paleta, poruka = svc.izdaj_paletu(db, paleta_id)
-    return templates.TemplateResponse(request, "skladiste/_izdaj_rezultat.html", {
-        "paleta": paleta, "poruka": poruka,
-    })
 
 
 # ─── Inventura ────────────────────────────────────────────────────────────────

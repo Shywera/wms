@@ -3,8 +3,8 @@
     <a href="/skladiste" class="text-slate-500 hover:text-slate-800">← Skladište</a>
     <span class="text-gray-300">/</span>
     {% for href, ime in [
-        ("/skladiste/zaprimanje", "Zaprimanje"),
-        ("/skladiste/izdaj", "Izdavanje"),
+        ("/skladiste/zaprimanje", "Zaprimanje (plan)"),
+        ("/skladiste/izdaj", "Izdavanje (količina)"),
         ("/skladiste/inventura", "Inventura"),
     ] %}
     <a href="{{ href }}"

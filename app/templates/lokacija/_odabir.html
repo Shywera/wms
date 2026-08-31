@@ -20,6 +20,16 @@
         Paleta je <span class="text-purple-700">nepotpuna</span> (stane još na isto mjesto)
     </label>
 
+    {% if predlozeno %}
+    <button hx-post="/lokacija/postavi" hx-vals='{"pozicija": "{{ predlozeno }}"}'
+            hx-include="[name='barkod'],[name='nepotpuna']" hx-target="#rez" hx-swap="innerHTML"
+            class="w-full mb-3 py-4 rounded-lg bg-green-600 hover:bg-green-700 text-white font-bold text-lg
+                   flex items-center justify-center gap-2">
+        ✓ Preporučeno mjesto: <span class="font-mono">{{ predlozeno }}</span>
+    </button>
+    <div class="text-center text-gray-400 text-xs my-2">— ili drugo mjesto —</div>
+    {% endif %}
+
     <label class="block text-sm font-semibold text-gray-600 mb-2">2) Skeniraj QR pozicije</label>
     <input type="hidden" name="barkod" value="{{ barkod }}">
     <input id="poz-input" name="pozicija" type="text" autocomplete="off"
