@@ -62,19 +62,21 @@ def zaprimi_skeniraj(request: Request, barkod: str = "", db: Session = Depends(g
     barkod = (barkod or "").strip()
     if not barkod:
         return templates.TemplateResponse(request, "lokacija/_odabir.html", {
-            "barkod": "", "zone": cfg.ZONE, "vec": None, "predlozeno": None, "greska": "Skeniraj barkod palete."})
+            "barkod": "", "zone": cfg.ZONE, "vec": None, "predlozeno": None, "artikl": None,
+            "greska": "Skeniraj barkod palete."})
     postojece = svc.aktivne_za_barkod(db, barkod)
     predlozeno = None
+    artikl = None
     if not postojece:
         try:
-            info = get_adapter().lookup_barcode(barkod)
+            artikl = get_adapter().lookup_barcode(barkod)
         except Exception:
-            info = None
-        if info and info.sifra:
-            prijedlozi = svc.predlozi_mjesta(db, 1, sifra=info.sifra)
+            artikl = None
+        if artikl and artikl.sifra:
+            prijedlozi = svc.predlozi_mjesta(db, 1, sifra=artikl.sifra)
             predlozeno = prijedlozi[0] if prijedlozi else None
     return templates.TemplateResponse(request, "lokacija/_odabir.html", {
-        "barkod": barkod, "zone": cfg.ZONE, "predlozeno": predlozeno,
+        "barkod": barkod, "zone": cfg.ZONE, "predlozeno": predlozeno, "artikl": artikl,
         "vec": postojece[0] if postojece else None, "greska": None})
 
 

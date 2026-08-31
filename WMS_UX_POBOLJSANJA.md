@@ -71,25 +71,25 @@ Kao bankomat — jednostavno, linearno, bez mogućnosti greške. Radnik ne razmi
 </div>
 ```
 
-### 2. **Ujedinti putanje — jedan Zaprimanje, jedan Izdavanje**
+### 2. **Ujedinti putanje — jedan Zaprimanje, jedan Izdavanje** ✅ GOTOVO (zaprimanje, 2026-08-31)
 
-**Sada:** 
+**Bilo:**
 - `/lokacija/zaprimi` (jednostavna, skener)
-- `/skladiste/zaprimanje` (plan, više stavki)
-- `/skladiste/zaprimanje_jedna` (koja je razlika?)
+- `/skladiste/zaprimanje` (plan, više stavki, admin-only u sidebaru)
+- `/skladiste/zaprimanje/jedna` (skoro identična `/lokacija/zaprimi`)
 
-**Trebalo bi:** 
-- **`/zaprimi`** — главна (jedina za radnika):
-  - Skeniraj paletu QR/barkod → API lookup (ERP)
-  - Prikažи podatke (šifra, naziv, količina)
-  - "Odaberi mjesto" (predloženo ili ručno)
-  - Potvrdi → "OK, paleta zaprimljena"
-  
-- **`/zaprimanje-plan`** (samo za admin, uklonjeno iz sidebara):
-  - Za slučaje gdje radimo više stavki odjednom
-  - Pristupljivo direktno ako admin tipka URL
+**Napravljeno — ali DRUGAČIJE nego što je ovdje bilo zamišljeno:** korisnik je eksplicitno
+tražio da bulk-plan NE bude posebna "samo za admin" stranica nego da bude na ISTOM mjestu
+kao jednostavan sken, s objašnjenjima, "princip kalkulatora" (zadano brzo/lagano, dodatna
+moć vidljiva ali ne nametnuta). Rezultat: `/skladiste/zaprimanje/jedna` uklonjen (pravi
+duplikat), a `/skladiste/zaprimanje` (plan) NIJE ostao kao odvojena admin stranica — umjesto
+toga, njegov ulaz (broj paleta) je sad sklopivi blok unutar `/lokacija/zaprimi` nakon skena
+("📦 Stiže li više paleta odjednom?"), koji vodi na isti (nepromijenjeni) plan-tok. Jedan URL,
+jedan ulaz, oba slučaja (1 paleta i bulk) pokrivena — vidi CLAUDE.md "Trenutno stanje".
 
-Slično za Izdavanje — samo `/izdaj` (skener) za radnike, `/izdavanje-količina` i `/inventura` skriveno.
+Izdavanje NIJE dirano u ovom koraku (`/skladiste/izdaj` po količini ostaje zaseban admin alat
+u "Napredno" — korisnik je zatražio samo zaprimanje; isti pristup se može primijeniti na
+izdavanje ako se zatraži).
 
 ### 3. **Jasna navigacija — nema "Napredno" u sidebaru za radnike**
 

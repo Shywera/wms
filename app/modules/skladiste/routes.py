@@ -76,22 +76,9 @@ def _to_float(v):
         return None
 
 
-# ─── Zaprimanje (glavno = više paleta, plan) ──────────────────────────────────
-
-@router.get("/zaprimanje", response_class=HTMLResponse)
-def zaprimanje(request: Request):
-    return templates.TemplateResponse(request, "skladiste/zaprimanje.html", {})
-
-
-@router.get("/zaprimanje/artikl", response_class=HTMLResponse)
-def zaprimanje_artikl(request: Request, barkod: str = ""):
-    """Skeniran barkod → kartica artikla + forma (broj paleta + zona) za generiranje plana."""
-    barkod = (barkod or "").strip()
-    artikl = get_adapter().lookup_barcode(barkod) if barkod else None
-    return templates.TemplateResponse(request, "skladiste/_zaprimi_plan_forma.html", {
-        "barkod": barkod, "artikl": artikl, "zone": cfg.ZONE,
-    })
-
+# ─── Zaprimanje — plan za više paleta odjednom ────────────────────────────────
+# Ulaz je SAMO preko /lokacija/zaprimi (polje "broj paleta" nakon skeniranja) —
+# nema više zasebne "admin" početne stranice, sve zaprimanje je na jednom mjestu.
 
 @router.post("/zaprimanje/plan", response_class=RedirectResponse)
 def zaprimanje_plan(request: Request, barkod: str = Form(""), broj_paleta: int = Form(1),
@@ -99,7 +86,7 @@ def zaprimanje_plan(request: Request, barkod: str = Form(""), broj_paleta: int =
     barkod = barkod.strip()
     artikl = get_adapter().lookup_barcode(barkod) if barkod else None
     if artikl is None:
-        return RedirectResponse("/skladiste/zaprimanje", status_code=303)
+        return RedirectResponse("/lokacija/zaprimi", status_code=303)
     broj_paleta = max(1, min(broj_paleta, 200))
     prijem = svc.kreiraj_plan(db, artikl.sifra, broj_paleta, zona=(zona.strip() or None))
     return RedirectResponse(f"/skladiste/zaprimanje/plan/{prijem.id}", status_code=303)
@@ -109,7 +96,7 @@ def zaprimanje_plan(request: Request, barkod: str = Form(""), broj_paleta: int =
 def zaprimanje_plan_view(request: Request, pid: int, db: Session = Depends(get_db)):
     prijem = db.get(Prijem, pid)
     if prijem is None:
-        return RedirectResponse("/skladiste/zaprimanje", status_code=303)
+        return RedirectResponse("/lokacija/zaprimi", status_code=303)
     artikl = get_adapter().lookup_barcode(prijem.sifra)
     return templates.TemplateResponse(request, "skladiste/zaprimanje_plan.html", {
         "prijem": prijem, "stavke": prijem.stavke, "artikl": artikl,
@@ -120,7 +107,7 @@ def zaprimanje_plan_view(request: Request, pid: int, db: Session = Depends(get_d
 def zaprimanje_plan_pdf(pid: int, db: Session = Depends(get_db)):
     buf = pdfgen.pdf_plan(db, pid)
     if buf is None:
-        return RedirectResponse("/skladiste/zaprimanje", status_code=303)
+        return RedirectResponse("/lokacija/zaprimi", status_code=303)
     return Response(buf.getvalue(), media_type="application/pdf",
                     headers={"Content-Disposition": f'inline; filename="plan-zaprimanja-{pid}.pdf"'})
 
@@ -150,7 +137,7 @@ def zaprimanje_plan_vrati(request: Request, pid: int, sid: int, db: Session = De
 def zaprimanje_plan_odustani(request: Request, pid: int, izbrisi: str = Form(""),
                              db: Session = Depends(get_db)):
     svc.odustani_plan(db, pid, izbrisi_palete=bool(izbrisi.strip()))
-    return RedirectResponse("/skladiste/zaprimanje", status_code=303)
+    return RedirectResponse("/lokacija/zaprimi", status_code=303)
 
 
 # ─── Izdavanje (glavno = po količini araka) ───────────────────────────────────
@@ -177,8 +164,6 @@ def izdaj_izvrsi(request: Request, ids: str = Form(""), db: Session = Depends(ge
     paleta_ids = [int(x) for x in ids.split(",") if x.strip().isdigit()]
     n = svc.izvrsi_izdavanje(db, paleta_ids)
     return templates.TemplateResponse(request, "skladiste/_izdaj_gotovo.html", {"n": n})
-
-
 
 
 # ─── Inventura ────────────────────────────────────────────────────────────────

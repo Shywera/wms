@@ -6,6 +6,14 @@
 <div class="bg-white rounded-lg border border-gray-300 shadow-sm p-4 mb-3">
     <div class="text-xs font-semibold text-gray-500">Paleta</div>
     <div class="text-lg font-mono font-bold text-gray-900">{{ barkod }}</div>
+    {% if artikl and artikl.sifra %}
+    <div class="mt-2 text-sm text-gray-600">
+        {{ artikl.naziv or "Prepoznato" }}
+        <span class="text-gray-400">· šifra <span class="font-mono">{{ artikl.sifra }}</span>{% if artikl.format %} · {{ artikl.format }}{% endif %}</span>
+    </div>
+    {% elif not vec %}
+    <div class="mt-2 text-xs text-amber-700">Šifra nije prepoznata — zaprimit ćeš paletu bez podataka o artiklu.</div>
+    {% endif %}
     {% if vec %}
     <div class="mt-2 border border-amber-300 bg-amber-50 rounded-lg p-2 text-sm text-amber-800">
         ⚠ Ova paleta je već na poziciji <strong>{{ vec.pozicija }}</strong>. Prvo je izdaj pa ponovno zaprimi.
@@ -14,6 +22,31 @@
 </div>
 
 {% if not vec %}
+{% if artikl and artikl.sifra %}
+<div x-data="{open:false}" class="mb-3">
+    <button type="button" @click="open=!open"
+            class="w-full text-left text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg px-4 py-2.5">
+        📦 Stiže li više paleta ovog papira odjednom? <span x-text="open ? '▲' : '▶'"></span>
+    </button>
+    <div x-show="open" x-cloak class="border border-blue-200 bg-blue-50/50 rounded-lg p-3 mt-1">
+        <p class="text-xs text-gray-500 mb-2">
+            Npr. stigao je cijeli kamion od 20 paleta iste vrste papira — upiši koliko, pa ćemo
+            unaprijed predložiti mjesto za svaku. Skenirat ćeš ih redom, jednu po jednu.
+        </p>
+        <form method="post" action="/skladiste/zaprimanje/plan" class="flex gap-2">
+            <input type="hidden" name="barkod" value="{{ barkod }}">
+            <input name="broj_paleta" type="number" value="2" min="2" max="200"
+                   class="w-24 border-2 border-blue-300 rounded-lg px-3 py-2 text-lg font-mono
+                          focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button type="submit"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg px-4 py-2">
+                Napravi plan za više paleta →
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <div class="bg-white rounded-lg border border-gray-300 shadow-md p-4">
     <label class="flex items-center gap-2 mb-3 pb-3 border-b border-gray-100 text-sm font-semibold text-gray-700 cursor-pointer">
         <input type="checkbox" name="nepotpuna" value="1" class="w-5 h-5 rounded">
